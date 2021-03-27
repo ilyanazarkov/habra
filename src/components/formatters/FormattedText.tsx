@@ -10,6 +10,11 @@ import Iframe from 'react-iframe'
 import { Node as MathJaxNode } from '@nteract/mathjax'
 
 type FloatType = 'left' | 'right'
+interface IframeResizeData {
+  type: string
+  id: number
+  height: number
+}
 
 const useStyles = makeStyles((theme) => ({
   img: {
@@ -73,7 +78,7 @@ const useStyles = makeStyles((theme) => ({
         color: theme.palette.text.secondary,
         fontSize: theme.typography.body2.fontSize,
         textAlign: 'center',
-        marginTop: theme.spacing(0.5),
+        marginTop: theme.spacing(1),
         lineHeight: '18px',
       },
     },
@@ -96,6 +101,7 @@ const useStyles = makeStyles((theme) => ({
   iframe: {
     width: '100%',
     minWidth: '100%',
+    marginTop: theme.spacing(4),
   },
 }))
 
@@ -153,13 +159,15 @@ const FormattedText = ({
             placeholder={
               <img
                 src={attribs.src}
-                alt={attribs.alt || 'Image'}
+                alt={attribs.alt || 'Изображение не загружено'}
                 style={imgStyles}
                 className={classes.img}
               />
             }
-            src={attribs['data-src']}
-            alt={attribs.alt || 'Image'}
+            // First try to load src from 'data-src' attribute
+            // If not found, then use default 'src' attribute
+            src={attribs['data-src'] || attribs.src}
+            alt={attribs.alt || 'Изображение не загружено'}
             style={imgStyles}
             className={classes.img}
           />
@@ -180,7 +188,7 @@ const FormattedText = ({
       if (name === 'div' && attribs.class === 'spoiler') {
         const title: string = children.find(
           (e) => e.attribs && e.attribs.class === 'spoiler_title'
-        ).children[0].data
+        ).children[0]?.data
         const data = children.find(
           (e) => e.attribs && e.attribs.class === 'spoiler_text'
         ).children
@@ -189,7 +197,7 @@ const FormattedText = ({
       }
       if (name === 'details' && attribs.class === 'spoiler') {
         const title: string = children.find((e) => e.name === 'summary')
-          .children[0].data
+          .children[0]?.data
         const data = children.find(
           (e) => e.attribs && e.attribs.class === 'spoiler__content'
         ).children
@@ -200,18 +208,17 @@ const FormattedText = ({
   }
 
   React.useEffect(() => {
-    window.addEventListener('message', (e) => {
-      if (e.data.type === 'embed-size') {
+    const handler = (e: MessageEvent<IframeResizeData>) => {
+      e.data.type === 'embed-size' &&
         setIframeHeights((prev) => ({
           ...prev,
           [e.data.id]: e.data.height || 'auto',
         }))
-      }
-    })
+    }
+    window.addEventListener('message', handler)
     return () => {
       // Remove listener on cleanup
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      window.removeEventListener('message', () => {})
+      window.removeEventListener('message', handler)
     }
   }, [])
 

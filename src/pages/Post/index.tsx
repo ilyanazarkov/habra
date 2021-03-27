@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Container from '@material-ui/core/Container'
 import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid'
-import { makeStyles } from '@material-ui/core/styles'
+import { fade, makeStyles } from '@material-ui/core/styles'
 import { useParams } from 'react-router'
 import { getPost } from '../../api'
 import { Link } from 'react-router-dom'
@@ -19,6 +19,8 @@ import CommentsButton from './CommentsButton'
 import SimilarPosts from './SimilarPosts'
 import TopDayPosts from './TopDayPosts'
 import getCompany from 'src/api/getCompany'
+import { Chip, Link as MUILink } from '@material-ui/core'
+import { POST_LABELS as postLabels } from 'src/config/constants'
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -29,7 +31,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   hubs: {
     wordBreak: 'break-word',
     width: '100%',
-    marginBottom: theme.spacing(3),
   },
   hubLink: {
     color: theme.palette.text.hint,
@@ -63,6 +64,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     fontSize: 14,
   },
   text: {
+    marginTop: theme.spacing(3),
     paddingBottom: theme.spacing(2),
     lineHeight: '1.56',
     wordBreak: 'break-word',
@@ -90,6 +92,20 @@ const useStyles = makeStyles((theme: Theme) => ({
   companyHeader: {
     width: '100%',
   },
+  translatedBox: {
+    backgroundColor: fade(theme.palette.primary.dark, 0.1),
+    padding: theme.spacing(1, 2),
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+    display: 'flex',
+    fontSize: 14,
+    borderRadius: 2,
+    '-webkit-tap-highlight-color': 'transparent !important',
+    textDecoration: 'none !important',
+    '&:active': {
+      opacity: 0.9,
+    },
+  },
 }))
 
 const Post = () => {
@@ -98,7 +114,33 @@ const Post = () => {
   const [fetchError, _setError] = useState<string>()
   const { id } = useParams<{ id: string }>()
   const classes = useStyles()
-  const contents = (post && post.isCorporative ? post && company : post) ? (
+  const [shouldShowCompanyHeader, setCompanyHeaderState] = useState<boolean>(
+    post?.isCorporative || true
+  )
+  const isTranslated = post && !!post.translationData
+  const shouldShowContents =
+    post && (shouldShowCompanyHeader ? post && company : post)
+  const labels =
+    shouldShowContents &&
+    post.postLabels.map((e, i) => {
+      const labelData = postLabels[e]
+      const chip = (
+        <Chip
+          label={labelData.text}
+          variant="outlined"
+          color="primary"
+          size="small"
+          key={i}
+          style={{ marginRight: 8, marginTop: 8 }}
+        />
+      )
+      return labelData.link ? (
+        <MUILink href={labelData.link}>{chip}</MUILink>
+      ) : (
+        chip
+      )
+    })
+  const contents = shouldShowContents ? (
     <>
       {/** Company header */}
       {company && company?.branding?.headerUrl && (
@@ -148,6 +190,15 @@ const Post = () => {
             </Typography>
           ))}
         </div>
+        {labels}
+        {isTranslated && (
+          <MUILink
+            href={post.translationData.originalUrl}
+            className={classes.translatedBox}
+          >
+            Автор оригинала: {post.translationData.originalAuthorName}
+          </MUILink>
+        )}
 
         {/* Article text */}
         <FormattedText
@@ -177,7 +228,9 @@ const Post = () => {
       setError(null)
 
       try {
-        setPost(await getPost(id))
+        const data = await getPost(id)
+        setPost(data)
+        setCompanyHeaderState(data.isCorporative)
       } catch (e) {
         if (e?.statusCode === 404) return setError('Статья не найдена')
         else return setError(e.message)
@@ -185,8 +238,6 @@ const Post = () => {
     }
     get()
   }, [id])
-
-  React.useLayoutEffect(() => window.scrollTo(0, 0))
 
   // Get company data if post is corporative
   useEffect(() => {
@@ -196,6 +247,7 @@ const Post = () => {
         hub && setCompany((await getCompany(hub.alias)).data)
       } catch (e) {
         console.warn(`Cannot get company data ${hub.alias}:`, e.message)
+        setCompanyHeaderState(false)
       }
     }
     if (post && post.isCorporative) get()

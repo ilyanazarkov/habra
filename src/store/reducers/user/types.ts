@@ -1,35 +1,3 @@
-import { Company, Hub } from 'src/interfaces'
-import { UserExtended } from 'src/interfaces/User'
-
-export const USER_PROFILE = 'USER_PROFILE_'
-export const USER_PROFILE_DATA = USER_PROFILE + 'DATA_'
-export const USER_PROFILE_COMPANIES = USER_PROFILE + 'COMPANIES_'
-export const USER_PROFILE_CHILDREN = USER_PROFILE + 'CHILDREN_'
-export const USER_PROFILE_HUBS = USER_PROFILE + 'HUBS_'
-
-export const USER_ARTICLES = 'USER_ARTICLES_'
-
-export interface PromiseItem<T> {
-  data: T
-  fetching: boolean
-  fetched: boolean
-  error: null | string
-}
-export interface State {
-  hubs?: PromiseItem<{
-    hubIds: string[]
-    hubRefs: Record<string, Hub.Hub>
-    pagesCount: number
-  }>
-  user?: PromiseItem<UserExtended>
-  companies?: PromiseItem<Company[]>
-  children?: PromiseItem<UserExtended[]>
-}
-
-export const fieldsMap = ['user', 'companies', 'children', 'hubs']
-export const typesMap = [
-  USER_PROFILE_DATA,
-  USER_PROFILE_COMPANIES,
-  USER_PROFILE_CHILDREN,
-  USER_PROFILE_HUBS,
-]
+export const USER_PREFIX = 'USER_'
+export const SET_TOKEN = USER_PREFIX + 'SET_TOKEN'
+export const GET_PROFILE = USER_PREFIX + 'GET_PROFILE'

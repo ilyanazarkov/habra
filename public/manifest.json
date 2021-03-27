@@ -19,10 +19,10 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "/top/day/p/1",
+  "start_url": "/top/daily/p/1",
   "display": "standalone",
   "theme_color": "#2979ff",
   "scope": "/",
-  "background_color": "#ffffff",
+  "background_color": "#2979ff",
   "splash_pages": null
 }

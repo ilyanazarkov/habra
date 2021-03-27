@@ -5,12 +5,16 @@ import * as serviceWorker from './serviceWorker'
 import { Provider } from 'react-redux'
 import store from './store'
 import swConfig from './serviceWorkerConfig'
-import 'react-lazy-load-image-component/src/effects/blur.css'
 import dayjs from 'dayjs'
-import 'dayjs/locale/ru'
 import relativeTimePlugin from 'dayjs/plugin/relativeTime'
 import calendarPlugin from 'dayjs/plugin/calendar'
 import updateLocalePlugin from 'dayjs/plugin/updateLocale'
+import 'dayjs/locale/ru'
+import ReactGA from 'react-ga'
+import { GA_ID_STRING } from 'src/config/constants'
+import 'react-photoswipe/dist/photoswipe.css'
+
+ReactGA.initialize(GA_ID_STRING)
 
 dayjs.locale('ru')
 dayjs.extend(relativeTimePlugin)

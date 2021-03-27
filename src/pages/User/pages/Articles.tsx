@@ -4,7 +4,7 @@ import PostItem from 'src/components/blocks/PostItem'
 import Pagination from 'src/components/blocks/Pagination'
 import { useParams, useHistory } from 'react-router'
 import { useDispatch } from 'react-redux'
-import { getUserArticles } from 'src/store/actions/user'
+import { getProfileArticles } from 'src/store/actions/profile'
 import { List, makeStyles } from '@material-ui/core'
 import PostSkeleton from 'src/components/skeletons/Post'
 import ErrorComponent from 'src/components/blocks/Error'
@@ -27,14 +27,16 @@ const Articles = () => {
   const history = useHistory()
   const classes = useStyles()
   const dispatch = useDispatch()
-  const isFetched = useSelector((state) => state.user.articles.fetched)
-  const isFetching = useSelector((state) => state.user.articles.fetching)
-  const fetchError = useSelector((state) => state.user.articles.error)
+  const isFetched = useSelector((state) => state.profile.articles.fetched)
+  const isFetching = useSelector((state) => state.profile.articles.fetching)
+  const fetchError = useSelector((state) => state.profile.articles.error)
   const data = useSelector(
-    (state) => state.user.articles.data.pages[currentPage]
+    (state) => state.profile.articles.data.pages[currentPage]
   )
-  const user = useSelector((state) => state.user.profile.user.data)
-  const pagesCount = useSelector((state) => state.user.articles.data.pagesCount)
+  const profile = useSelector((state) => state.profile.profile.user.data)
+  const pagesCount = useSelector(
+    (state) => state.profile.articles.data.pagesCount
+  )
 
   const PaginationComponent = () =>
     pagesCount ? (
@@ -48,12 +50,12 @@ const Articles = () => {
 
   const handlePagination = (_: never, i: number) => {
     if (i === currentPage) return
-    else history.push(`/user/${user.login}/articles/${i}`)
+    else history.push(`/user/${profile.login}/articles/${i}`)
   }
 
   useEffect(() => {
-    dispatch(getUserArticles(user.login, currentPage))
-  }, [user.login, currentPage, dispatch])
+    dispatch(getProfileArticles(profile.login, currentPage))
+  }, [profile.login, currentPage, dispatch])
 
   return (
     <List className={classes.root}>
@@ -67,7 +69,7 @@ const Articles = () => {
       {fetchError && (
         <ErrorComponent
           message={fetchError.error.message}
-          to={`/user/${user.login}/articles/1`}
+          to={`/user/${profile.login}/articles/1`}
         />
       )}
       <PaginationComponent />

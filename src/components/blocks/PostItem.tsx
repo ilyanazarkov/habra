@@ -19,6 +19,7 @@ import LazyLoadImage from './LazyLoadImage'
 import { useSelector } from 'src/hooks'
 import RightIcon from '@material-ui/icons/ChevronRightRounded'
 import { Chip } from '@material-ui/core'
+import { POST_LABELS as postLabels } from 'src/config/constants'
 
 const ld = { lighten, darken }
 const useStyles = makeStyles((theme) => ({
@@ -216,22 +217,6 @@ export const PostItem = ({
             <Typography className={classes.postTs} variant="caption">
               {ts}
             </Typography>
-            {post.postLabels.some((e) => e === 'translation') && (
-              <Chip
-                label="Перевод"
-                variant="outlined"
-                color="primary"
-                size="small"
-              />
-            )}
-            {post.postLabels.some((e) => e === 'tutorial') && (
-              <Chip
-                label="Туториал"
-                variant="outlined"
-                color="primary"
-                size="small"
-              />
-            )}
           </Grid>
         </Link>
         <Grid item className={classes.imageHolder}>
@@ -253,6 +238,18 @@ export const PostItem = ({
             >
               <Typography className={classes.postTitle}>{title}</Typography>
             </Link>
+          </Grid>
+          <Grid item xs={12}>
+            {post.postLabels.map((e, i) => (
+              <Chip
+                label={postLabels[e].text}
+                variant="outlined"
+                color="primary"
+                size="small"
+                key={i}
+                style={{ marginRight: 8, marginTop: 8 }}
+              />
+            ))}
           </Grid>
           <Grid
             className={classes.postBottomRow}

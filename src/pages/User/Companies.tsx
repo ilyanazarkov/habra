@@ -12,7 +12,7 @@ import { Company } from 'src/interfaces'
 import { useSelector } from 'src/hooks'
 import ProfileCompaniesSkeleton from 'src/components/skeletons/ProfileCompanies'
 import { useDispatch } from 'react-redux'
-import { getUserCompanies } from 'src/store/actions/user'
+import { getProfileCompanies } from 'src/store/actions/profile'
 import UserAvatar from 'src/components/blocks/UserAvatar'
 
 const useStyles = makeStyles((theme) => ({
@@ -36,17 +36,21 @@ const useStyles = makeStyles((theme) => ({
 const Companies = ({ classes: additionalClasses }: ComponentWithUserParams) => {
   const classes = useStyles()
   const dispatch = useDispatch()
-  const user = useSelector((store) => store.user.profile.user.data)
-  const companies = useSelector((store) => store.user.profile.companies.data)
-  const isFetched = useSelector((store) => store.user.profile.companies.fetched)
-  const isFetching = useSelector(
-    (store) => store.user.profile.companies.fetching
+  const profile = useSelector((store) => store.profile.profile.user.data)
+  const companies = useSelector((store) => store.profile.profile.companies.data)
+  const isFetched = useSelector(
+    (store) => store.profile.profile.companies.fetched
   )
-  const fetchError = useSelector((store) => store.user.profile.companies.error)
+  const isFetching = useSelector(
+    (store) => store.profile.profile.companies.fetching
+  )
+  const fetchError = useSelector(
+    (store) => store.profile.profile.companies.error
+  )
 
   useEffect(() => {
-    dispatch(getUserCompanies(user.login))
-  }, [user.login, dispatch])
+    dispatch(getProfileCompanies(profile.login))
+  }, [profile.login, dispatch])
 
   const Item = ({ data }: { data: Company }) => (
     <ListItem

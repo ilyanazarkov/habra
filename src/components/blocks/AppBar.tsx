@@ -3,18 +3,22 @@ import makeStyles from '@material-ui/core/styles/makeStyles'
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
-import { Link } from 'react-router-dom'
 import IconButton from '@material-ui/core/IconButton'
+import Avatar from '@material-ui/core/Avatar'
+import { Link } from 'react-router-dom'
 import Container from '@material-ui/core/Container'
-import { MIN_WIDTH as maxWidth } from '../../config/constants'
+import { MIN_WIDTH as maxWidth, RATING_MODES } from '../../config/constants'
 import PermIdentityRoundedIcon from '@material-ui/icons/PermIdentityRounded'
 import SearchRoundedIcon from '@material-ui/icons/SearchRounded'
 import SettingsOutlinedIcon from '@material-ui/icons/SettingsOutlined'
 import { useHistory } from 'react-router-dom'
-import getCachedMode from '../../utils/getCachedMode'
 import WifiOffRoundedIcon from '@material-ui/icons/WifiOffRounded'
 import { Offline } from 'react-detect-offline'
 import { useScrollTrigger, Slide } from '@material-ui/core'
+import { useSelector } from 'src/hooks'
+import { FetchingState, UserExtended } from 'src/interfaces'
+import { useDispatch } from 'react-redux'
+import { getMe } from 'src/store/actions/user'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -46,6 +50,11 @@ const useStyles = makeStyles((theme) => ({
     height: '100%',
     alignItems: 'center',
   },
+  avatar: {
+    height: theme.spacing(3),
+    width: theme.spacing(3),
+    borderRadius: theme.shape.borderRadius,
+  },
 }))
 
 interface HideOnScrollProps {
@@ -65,7 +74,21 @@ const HideOnScroll = (props: HideOnScrollProps) => {
 
 const Component = () => {
   const classes = useStyles()
+  const dispatch = useDispatch()
   const history = useHistory()
+  const modeName = useSelector((state) => state.home.mode)
+  const userState = useSelector((state) => state.user.profile.state)
+  const userData = useSelector(
+    (state) => state.user.profile.data
+  ) as UserExtended
+  const token = useSelector((state) => state.user.token)
+  const mode = RATING_MODES.find((e) => e.mode === modeName)
+  const shouldFetchUser = !!token
+  const shouldShowUser = userState === FetchingState.Fetched
+
+  React.useEffect(() => {
+    if (shouldFetchUser) dispatch(getMe(token))
+  }, [shouldFetchUser, dispatch, token])
 
   return (
     <HideOnScroll>
@@ -73,9 +96,17 @@ const Component = () => {
         <Container className={classes.container}>
           <Toolbar style={{ minHeight: 'unset', height: 48 }}>
             <Typography variant="h6" className={classes.linkTypography}>
-              <Link to={`/${getCachedMode()}/p/1`} className={classes.link}>
+              <Link
+                to={mode ? `${mode.to}/p/1` : '/'}
+                onClick={() => window.scrollTo(0, 0)}
+                className={classes.link}
+              >
                 habra.
-                <Offline>
+                <Offline
+                  polling={{
+                    url: 'https://ipv4.icanhazip.com',
+                  }}
+                >
                   <WifiOffRoundedIcon className={classes.offline} />
                 </Offline>
               </Link>
@@ -86,14 +117,18 @@ const Component = () => {
             <IconButton onClick={() => history.push('/settings')}>
               <SettingsOutlinedIcon />
             </IconButton>
-            <IconButton
-              target="_blank"
-              rel="noopener noreferrer"
-              component="a"
-              href="https://m.habr.com/kek/v1/auth/habrahabr/?back=/ru/all/&hl=ru"
-            >
-              <PermIdentityRoundedIcon />
-            </IconButton>
+            {!shouldShowUser && (
+              <IconButton onClick={() => history.push('/auth')}>
+                <PermIdentityRoundedIcon />
+              </IconButton>
+            )}
+            {shouldShowUser && (
+              <IconButton
+                onClick={() => history.push('/user/' + userData.login)}
+              >
+                <Avatar className={classes.avatar} src={userData.avatar} />
+              </IconButton>
+            )}
           </Toolbar>
         </Container>
       </AppBar>

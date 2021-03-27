@@ -11,7 +11,7 @@ import { ComponentWithUserParams } from './index'
 import { makeStyles, fade } from '@material-ui/core/styles'
 import { Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { getUserHubs } from 'src/store/actions/user'
+import { getProfileHubs } from 'src/store/actions/profile'
 import { useSelector } from 'src/hooks'
 import { Hub } from 'src/interfaces'
 
@@ -60,7 +60,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const HubsItem = ({ data }: { data: Hub.Hub }) => {
+const HubsItem = ({ data }: { data: Hub }) => {
   const classes = useStyles()
   return (
     <Grid
@@ -85,17 +85,17 @@ const Hubs = ({ classes: additionalClasses }: ComponentWithUserParams) => {
   const dispatch = useDispatch()
   const [showAll, setShowAll] = useState<boolean>(false)
   const classes = useStyles()
-  const user = useSelector((store) => store.user.profile.user.data)
-  const hubs = useSelector((store) => store.user.profile.hubs.data)
-  const isFetched = useSelector((store) => store.user.profile.hubs.fetched)
-  const isFetching = useSelector((store) => store.user.profile.hubs.fetching)
-  const fetchError = useSelector((store) => store.user.profile.hubs.error)
+  const profile = useSelector((store) => store.profile.profile.user.data)
+  const hubs = useSelector((store) => store.profile.profile.hubs.data)
+  const isFetched = useSelector((store) => store.profile.profile.hubs.fetched)
+  const isFetching = useSelector((store) => store.profile.profile.hubs.fetching)
+  const fetchError = useSelector((store) => store.profile.profile.hubs.error)
   const shouldCollapse = hubs ? hubs.hubIds.length > 25 : false
 
   useEffect(() => {
     setShowAll(false)
-    if (!isFetched) dispatch(getUserHubs(user.login))
-  }, [user.login, dispatch, isFetched])
+    if (!isFetched) dispatch(getProfileHubs(profile.login))
+  }, [profile.login, dispatch, isFetched])
 
   if (fetchError)
     return (

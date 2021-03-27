@@ -8,13 +8,12 @@ import PostItem from 'src/components/blocks/PostItem'
 import Pagination from 'src/components/blocks/Pagination'
 import ErrorComponent from 'src/components/blocks/Error'
 import NewsBlock from 'src/components/blocks/NewsBlock'
-import { Mode } from 'src/api/getPosts'
-import useLastMode from 'src/utils/useLastMode'
-import { MODES as modes } from 'src/config/constants'
+import { Mode, RATING_MODES as modes } from 'src/config/constants'
 import Switcher from './Switcher'
 import { useDispatch } from 'react-redux'
 import { getPosts } from 'src/store/actions/home'
 import { useSelector } from 'src/hooks'
+import getCachedMode from 'src/utils/getCachedMode'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -27,12 +26,12 @@ const useStyles = makeStyles((theme) => ({
 
 type HomePathParams = { page: string }
 
-const Home = () => {
-  document.title = 'habra.'
+const isServerUpdateError = (message: string) => message === 'Network Error'
 
+const Home = () => {
   const params = useParams() as HomePathParams
-  const lastSelectedMode = useLastMode()
-  const [mode, setMode] = useState<Mode>(lastSelectedMode)
+  const lastSelectedMode = getCachedMode()
+  const [mode, setMode] = useState<Mode>(lastSelectedMode.mode)
   const currentPage = Number(params.page)
   const history = useHistory()
   const classes = useStyles()
@@ -42,6 +41,12 @@ const Home = () => {
   const fetchError = useSelector((state) => state.home.error)
   const posts = useSelector((state) => state.home.data[mode].pages[currentPage])
   const pagesCount = useSelector((state) => state.home.data[mode].pagesCount)
+  const fetchErrorMessage = isServerUpdateError(fetchError?.error?.message)
+    ? 'Идут технические работы'
+    : fetchError?.error?.message
+  const fetchErrorCode = isServerUpdateError(fetchError?.error?.message)
+    ? 503
+    : fetchError?.error?.code
 
   const PaginationComponent = () =>
     pagesCount ? (
@@ -66,8 +71,8 @@ const Home = () => {
 
   const handleSwitcher = ({ mode: newMode, to }) => {
     localStorage.setItem('mode', newMode)
-    history.push(to + '/p/1')
     setMode(newMode)
+    history.push(to + '/p/1')
   }
 
   useEffect(() => {
@@ -87,7 +92,9 @@ const Home = () => {
             {postsComponents.slice(1)}
           </>
         )}
-        {fetchError && <ErrorComponent message={fetchError.error.message} />}
+        {fetchError && (
+          <ErrorComponent code={fetchErrorCode} message={fetchErrorMessage} />
+        )}
         <PaginationComponent />
       </List>
     </>
